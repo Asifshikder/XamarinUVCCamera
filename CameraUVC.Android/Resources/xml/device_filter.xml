@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- UVC Camera filter - matches Video Class devices -->
+    <usb-device class="14" />
+    
+    <!-- Additional filters for common USB camera devices -->
+    <usb-device class="239" subclass="2" protocol="1" />
+    
+    <!-- Misc class devices (some cameras use this) -->
+    <usb-device class="239" />
+    
+    <!-- Vendor-specific filters for common camera manufacturers -->
+    <!-- Logitech -->
+    <usb-device vendor-id="1133" />
+    <!-- Microsoft -->
+    <usb-device vendor-id="1118" />
+    <!-- Creative -->
+    <usb-device vendor-id="1054" />
+    <!-- Generic USB cameras -->
+    <usb-device vendor-id="7119" />
+</resources>
