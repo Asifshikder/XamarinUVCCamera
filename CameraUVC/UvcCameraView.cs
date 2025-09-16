@@ -189,7 +189,7 @@ namespace CameraUVC
 
         public override string ToString()
         {
-            return $"{Width} X {Height}";
+            return $"{Width}x{Height}";
         }
     }
 }

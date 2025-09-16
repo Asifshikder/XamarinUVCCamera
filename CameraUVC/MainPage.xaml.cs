@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ namespace CameraUVC
         private bool _isRecording = false;
         private UsbDeviceInfo _selectedDevice = null;
         private CameraSize _defaultResolution = new CameraSize { Width = 640, Height = 480 };
+        private List<CameraSize> _availableResolutions = new List<CameraSize>();
 
         public MainPage()
         {
@@ -53,6 +55,7 @@ namespace CameraUVC
             if (usbDevices.Length > 0)
             {
                 _selectedDevice = usbDevices[0];
+                LoadResolutions();
                 UpdateStatusLabel($"Found camera: {_selectedDevice.DisplayName}");
                 Console.WriteLine($"Auto-selected camera: {_selectedDevice.DisplayName}");
             }
@@ -60,6 +63,30 @@ namespace CameraUVC
             {
                 UpdateStatusLabel("No USB cameras found. Please connect a camera.");
             }
+        }
+
+        private void LoadResolutions()
+        {
+            if (_selectedDevice == null || _cameraHelper == null)
+                return;
+
+            _availableResolutions.Clear();
+            var supportedSizes = _cameraHelper.GetCameraSupportedSizes(_selectedDevice.DeviceId);
+            
+            if (supportedSizes != null && supportedSizes.Length > 0)
+            {
+                _availableResolutions.AddRange(supportedSizes);
+            }
+            else
+            {
+                _availableResolutions.Add(_defaultResolution);
+            }
+
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                ResolutionPicker.ItemsSource = _availableResolutions;
+                ResolutionPicker.SelectedItem = _availableResolutions.FirstOrDefault();
+            });
         }
 
         private void UpdateStatusLabel(string message)
@@ -77,6 +104,7 @@ namespace CameraUVC
                 if (_selectedDevice == null)
                 {
                     _selectedDevice = e;
+                    LoadResolutions();
                     UpdateStatusLabel($"Camera connected: {e.DisplayName}");
                     Console.WriteLine($"Camera attached: {e.DisplayName}");
                 }
@@ -94,10 +122,21 @@ namespace CameraUVC
                         UvcCameraView.Close();
                     }
                     _selectedDevice = null;
+                    _availableResolutions.Clear();
+                    ResolutionPicker.ItemsSource = null;
                     UpdateStatusLabel("Camera disconnected. Please reconnect your camera.");
                     Console.WriteLine($"Camera detached: {e.DisplayName}");
                 }
             });
+        }
+
+        private void ResolutionPicker_OnSelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (_isConnected)
+            {
+                DisplayAlert("Resolution Change", 
+                    "Please disconnect and reconnect the camera to apply the new resolution.", "OK");
+            }
         }
 
         private void OnCameraOpen(object sender, EventArgs e)
@@ -105,7 +144,6 @@ namespace CameraUVC
             Device.BeginInvokeOnMainThread(() =>
             {
                 _isConnected = true;
-                BtnConnect.Text = "🔌 Disconnect";
                 BtnConnect.BackgroundColor = Color.FromHex("#FF9800");
                 BtnRecord.IsEnabled = true;
                 BtnPhoto.IsEnabled = true;
@@ -121,13 +159,12 @@ namespace CameraUVC
             {
                 _isConnected = false;
                 _isRecording = false;
-                BtnConnect.Text = "🔌 Connect";
                 BtnConnect.BackgroundColor = Color.FromHex("#2196F3");
                 BtnRecord.IsEnabled = false;
                 BtnPhoto.IsEnabled = false;
                 BtnRecord.Opacity = 0.5;
                 BtnPhoto.Opacity = 0.5;
-                BtnRecord.Text = "🎥 Record";
+                BtnRecord.Text = "⏺";
                 BtnRecord.BackgroundColor = Color.FromHex("#E91E63");
                 UpdateStatusLabel(_selectedDevice != null ? "Camera disconnected - Click Connect to start" : "No camera found");
             });
@@ -138,7 +175,7 @@ namespace CameraUVC
             Device.BeginInvokeOnMainThread(() =>
             {
                 _isRecording = true;
-                BtnRecord.Text = "⏹️ Stop";
+                BtnRecord.Text = "⏹";
                 BtnRecord.BackgroundColor = Color.FromHex("#9C27B0");
                 UpdateStatusLabel($"Recording video...");
                 Console.WriteLine($"Recording started: {videoFile}");
@@ -150,7 +187,7 @@ namespace CameraUVC
             Device.BeginInvokeOnMainThread(() =>
             {
                 _isRecording = false;
-                BtnRecord.Text = "🎥 Record";
+                BtnRecord.Text = "⏺";
                 BtnRecord.BackgroundColor = Color.FromHex("#E91E63");
                 UpdateStatusLabel("Recording stopped - Video saved successfully!");
                 Console.WriteLine("Recording stopped");
@@ -181,10 +218,8 @@ namespace CameraUVC
                     UvcCameraView.FlipVertically = false;
                     UvcCameraView.VideoRotation = 0;
 
-                    // Get default resolution or use fallback
-                    var supportedSizes = _cameraHelper?.GetCameraSupportedSizes(_selectedDevice.DeviceId);
-                    var resolution = supportedSizes?.FirstOrDefault() ?? _defaultResolution;
-
+                    // Get selected resolution or use default
+                    var resolution = ResolutionPicker.SelectedItem as CameraSize ?? _defaultResolution;
                     Console.WriteLine($"Using resolution: {resolution.Width}x{resolution.Height}");
                     
                     UvcCameraView.Open(_selectedDevice.DeviceId, resolution.Width, resolution.Height);
@@ -237,10 +272,6 @@ namespace CameraUVC
                     // Stop recording
                     Console.WriteLine("Stopping video recording");
                     UvcCameraView.StopRecording();
-                    
-                    // Show success message after a brief delay
-                    await Task.Delay(500);
-                    await DisplayAlert("Success", "Video saved successfully!", "OK");
                 }
             }
             catch (Exception ex)
@@ -278,7 +309,6 @@ namespace CameraUVC
                 
                 await Task.Delay(1000); // Give time for photo to save
                 UpdateStatusLabel("Photo saved successfully!");
-                await DisplayAlert("Success", $"Photo saved to:\n{Path.GetFileName(photoFile)}", "OK");
             }
             catch (Exception ex)
             {

@@ -30,10 +30,18 @@
             <Style x:Key="PhotoButton" TargetType="Button" BasedOn="{StaticResource CircleButton}">
                 <Setter Property="BackgroundColor" Value="#4CAF50" />
             </Style>
+
+            <!-- Picker Style -->
+            <Style x:Key="ResolutionPicker" TargetType="Picker">
+                <Setter Property="BackgroundColor" Value="#333333" />
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="HeightRequest" Value="40" />
+                <Setter Property="WidthRequest" Value="150" />
+            </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="*,Auto,Auto">
+    <Grid RowDefinitions="*,Auto,Auto,Auto">
         <!-- Camera Preview Area -->
         <Frame
             Grid.Row="0" 
@@ -45,10 +53,27 @@
             <local:UvcCameraView x:Name="UvcCameraView" BackgroundColor="#1A1A1A" />
         </Frame>
 
+        <!-- Resolution Picker -->
+        <StackLayout 
+            Grid.Row="1" 
+            Orientation="Horizontal" 
+            HorizontalOptions="Center" 
+            Margin="0,5,0,5"
+            Spacing="10">
+            <Label 
+                Text="Resolution:" 
+                TextColor="#CCCCCC" 
+                VerticalOptions="Center"/>
+            <Picker
+                x:Name="ResolutionPicker"
+                Style="{StaticResource ResolutionPicker}"
+                SelectedIndexChanged="ResolutionPicker_OnSelectedIndexChanged"/>
+        </StackLayout>
+
         <!-- Status Label -->
         <Label 
             x:Name="StatusLabel"
-            Grid.Row="1"
+            Grid.Row="2"
             Text="Connect a USB camera to get started"
             TextColor="#CCCCCC"
             FontSize="14"
@@ -58,19 +83,19 @@
 
         <!-- Control Buttons -->
         <StackLayout
-            Grid.Row="2"
+            Grid.Row="3"
             Orientation="Horizontal"
             HorizontalOptions="Center"
             VerticalOptions="Center"
             Margin="20,10,20,20"
             Spacing="15">
-
+            
             <Button 
                 x:Name="BtnConnect" 
                 Text="🔌"
                 Style="{StaticResource ConnectButton}"
                 Clicked="BtnConnect_OnClicked" />
-
+            
             <Button 
                 x:Name="BtnRecord" 
                 Text="⏺"
@@ -78,7 +103,7 @@
                 IsEnabled="False"
                 Opacity="0.5"
                 Clicked="BtnRecord_OnClicked" />
-
+            
             <Button 
                 x:Name="BtnPhoto" 
                 Text="📷"
@@ -86,6 +111,7 @@
                 IsEnabled="False"
                 Opacity="0.5"
                 Clicked="BtnPhoto_OnClicked" />
+                
         </StackLayout>
     </Grid>
 </ContentPage>
