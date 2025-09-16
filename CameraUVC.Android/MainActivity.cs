@@ -2,6 +2,7 @@
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
+using System.IO;
 
 namespace CameraUVC.Droid
 {
@@ -22,23 +23,23 @@ namespace CameraUVC.Droid
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);
 
-            // Create directories for photos and videos
-            var photosDir = GetExternalFilesDir(Environment.DirectoryPictures).AbsolutePath;
-            var videosDir = GetExternalFilesDir(Environment.DirectoryMovies).AbsolutePath;
-            
-            // Ensure directories exist
-            System.IO.Directory.CreateDirectory(photosDir);
-            System.IO.Directory.CreateDirectory(videosDir);
-            
+            // Create directories for photos and videos in /storage/emulated/0/simple_uvc_camera
+            var rootDir = Path.Combine(Environment.ExternalStorageDirectory.AbsolutePath, "simple_uvc_camera");
+            var photosDir = Path.Combine(rootDir, "photos");
+            var videosDir = Path.Combine(rootDir, "videos");
+
+            Directory.CreateDirectory(photosDir);
+            Directory.CreateDirectory(videosDir);
+
             CameraHelper.Instance = new CameraHelperImpl
             {
                 PhotoRootDir = photosDir,
                 VideoRootDir = videosDir,
             };
-            
+
             System.Console.WriteLine($"Photos will be saved to: {photosDir}");
             System.Console.WriteLine($"Videos will be saved to: {videosDir}");
-            
+
             LoadApplication(new App());
         }
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
