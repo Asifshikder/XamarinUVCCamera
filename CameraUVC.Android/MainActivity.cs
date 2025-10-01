@@ -23,11 +23,41 @@ namespace CameraUVC.Droid
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);
 
-            // Create directories for photos and videos in /storage/emulated/0/simple_uvc_camera
-            var rootDir = Path.Combine(Environment.ExternalStorageDirectory.AbsolutePath, "simple_uvc_camera");
-            var photosDir = Path.Combine(rootDir, "photos");
-            var videosDir = Path.Combine(rootDir, "videos");
+            try
+            {
+                InitializeCameraHelper();
+            }
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine($"[CameraUVC] Error initializing CameraHelper: {ex}");
+            }
 
+            LoadApplication(new App());
+        }
+
+        protected override void OnResume()
+        {
+            base.OnResume();
+            Instance = this;
+            if (CameraHelper.Instance == null)
+            {
+                try
+                {
+                    InitializeCameraHelper();
+                }
+                catch (System.Exception ex)
+                {
+                    System.Console.WriteLine($"[CameraUVC] Error initializing CameraHelper (OnResume): {ex}");
+                }
+            }
+        }
+
+        private void InitializeCameraHelper()
+        {
+            // Use app-specific external storage for compatibility with all Android versions
+            var appRoot = GetExternalFilesDir(null).AbsolutePath;
+            var photosDir = Path.Combine(appRoot, "simple_uvc_camera", "photos");
+            var videosDir = Path.Combine(appRoot, "simple_uvc_camera", "videos");
             Directory.CreateDirectory(photosDir);
             Directory.CreateDirectory(videosDir);
 
@@ -39,13 +69,11 @@ namespace CameraUVC.Droid
 
             System.Console.WriteLine($"Photos will be saved to: {photosDir}");
             System.Console.WriteLine($"Videos will be saved to: {videosDir}");
-
-            LoadApplication(new App());
         }
+
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
         {
             Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }

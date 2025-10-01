@@ -37,7 +37,7 @@
     <EnableLLVM>false</EnableLLVM>
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
     <BundleAssemblies>false</BundleAssemblies>
-    <AndroidKeyStore>true</AndroidKeyStore>
+    <AndroidKeyStore>false</AndroidKeyStore>
     <AndroidSigningKeyStore>C:\Users\Asifs\Downloads\UvcCamera.Xamarin-main\UvcCamera.Xamarin-main\cs\UsbCamera\myapp.keystore</AndroidSigningKeyStore>
     <AndroidSigningStorePass>12345678</AndroidSigningStorePass>
     <AndroidSigningKeyAlias>myalias</AndroidSigningKeyAlias>
