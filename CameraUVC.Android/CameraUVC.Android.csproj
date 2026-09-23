@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -38,10 +38,6 @@
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
     <BundleAssemblies>false</BundleAssemblies>
     <AndroidKeyStore>false</AndroidKeyStore>
-    <AndroidSigningKeyStore>C:\Users\Asifs\Downloads\UvcCamera.Xamarin-main\UvcCamera.Xamarin-main\cs\UsbCamera\myapp.keystore</AndroidSigningKeyStore>
-    <AndroidSigningStorePass>12345678</AndroidSigningStorePass>
-    <AndroidSigningKeyAlias>myalias</AndroidSigningKeyAlias>
-    <AndroidSigningKeyPass>12345678</AndroidSigningKeyPass>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -52,11 +48,8 @@
     <WarningLevel>4</WarningLevel>
     <AndroidManagedSymbols>true</AndroidManagedSymbols>
     <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
-    <AndroidKeyStore>true</AndroidKeyStore>
-    <AndroidSigningKeyStore>D:\Projects\uvccamera.xamarin\my-release-key.keystore</AndroidSigningKeyStore>
-    <AndroidSigningStorePass>12345678</AndroidSigningStorePass>
-    <AndroidSigningKeyPass>12345678</AndroidSigningKeyPass>
-    <AndroidSigningKeyAlias>myalias</AndroidSigningKeyAlias>
+    <AndroidKeyStore>false</AndroidKeyStore>
+    <AndroidSigningKeyStore>..\my-release-key.keystore</AndroidSigningKeyStore>
     <AotAssemblies>false</AotAssemblies>
     <EnableLLVM>false</EnableLLVM>
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
@@ -78,8 +71,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainActivity.cs" />
-    <Compile Include="MyUvcCameraHelper.cs" />
-    <Compile Include="Renders\UvcCameraRender.cs" />
+    <Compile Include="UvcCameraHelper.cs" />
+    <Compile Include="Renderers\UvcCameraRenderer.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

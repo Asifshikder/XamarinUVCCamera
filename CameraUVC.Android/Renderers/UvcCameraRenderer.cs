@@ -1,22 +1,28 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using Android.Content;
 using Android.Widget;
-using Com.Serenegiant.Usb.Widget;
 using CameraUVC;
+using CameraUVC.Droid.Renderers;
+using CameraUVC.Models;
+using Com.Serenegiant.Usb.Widget;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
 using ARelativeLayout = Android.Widget.RelativeLayout;
 
-[assembly: ExportRenderer(typeof(UvcCameraView),
-                          typeof(CameraUVC.Droid.Renders.UvcCameraRender))]
-namespace CameraUVC.Droid.Renders
+[assembly: ExportRenderer(typeof(UvcCameraView), typeof(UvcCameraRenderer))]
+
+namespace CameraUVC.Droid.Renderers
 {
-    public class UvcCameraRender : ViewRenderer<UvcCameraView, ARelativeLayout>
+    /// <summary>
+    /// Custom Xamarin.Forms ViewRenderer mapping cross-platform UvcCameraView
+    /// to the native Android UVCCameraTextureView surface for hardware-accelerated preview.
+    /// </summary>
+    public class UvcCameraRenderer : ViewRenderer<UvcCameraView, ARelativeLayout>
     {
         internal UVCCameraTextureView UvcCamera;
 
-        public UvcCameraRender(Context context) : base(context)
+        public UvcCameraRenderer(Context context) : base(context)
         {
         }
 
@@ -28,32 +34,34 @@ namespace CameraUVC.Droid.Renders
             {
                 if (Control == null)
                 {
-                    // Save the VideoView for future reference
+                    // Initialize the native hardware video texture view
                     UvcCamera = new UVCCameraTextureView(Context);
 
-                    // Put the VideoView in a RelativeLayout
-                    ARelativeLayout relativeLayout = new ARelativeLayout(Context);
+                    // Host the VideoView within an Android RelativeLayout
+                    var relativeLayout = new ARelativeLayout(Context);
                     relativeLayout.AddView(UvcCamera);
 
                     // Center the VideoView in the RelativeLayout
-                    ARelativeLayout.LayoutParams layoutParams =
-                        new ARelativeLayout.LayoutParams(LayoutParams.MatchParent, LayoutParams.MatchParent);
+                    var layoutParams = new ARelativeLayout.LayoutParams(
+                        LayoutParams.MatchParent,
+                        LayoutParams.MatchParent);
                     layoutParams.AddRule(LayoutRules.CenterInParent);
                     UvcCamera.LayoutParameters = layoutParams;
 
                     SetNativeControl(relativeLayout);
                 }
 
+                // Subscribe to camera action requests from the cross-platform element
                 args.NewElement.OpenRequested += NewElement_OpenRequested;
                 args.NewElement.CloseRequested += NewElement_CloseRequested;
                 args.NewElement.StartRecordingRequested += NewElement_StartRecordingRequested;
                 args.NewElement.StopRecordingRequested += NewElement_StopRecordingRequested;
                 args.NewElement.TakeSnapshotRequested += NewElement_TakeSnapshotRequested;
-
             }
 
             if (args.OldElement != null)
             {
+                // Unsubscribe to prevent memory leaks
                 args.OldElement.OpenRequested -= NewElement_OpenRequested;
                 args.OldElement.CloseRequested -= NewElement_CloseRequested;
                 args.OldElement.StartRecordingRequested -= NewElement_StartRecordingRequested;
@@ -64,11 +72,12 @@ namespace CameraUVC.Droid.Renders
 
         protected override void Dispose(bool disposing)
         {
-            if (Control != null && UvcCamera != null)
+            if (disposing)
             {
-            }
-            if (Element != null)
-            {
+                if (Control != null && UvcCamera != null)
+                {
+                    UvcCamera = null;
+                }
             }
 
             base.Dispose(disposing);
@@ -78,21 +87,13 @@ namespace CameraUVC.Droid.Renders
         {
             base.OnElementPropertyChanged(sender, args);
 
-            if (args.PropertyName == UvcCameraView.VideoRotationProperty.PropertyName)
-            {
-            }
-            else if (args.PropertyName == UvcCameraView.FlipVerticallyProperty.PropertyName)
-            {
-            }
-            else if (args.PropertyName == UvcCameraView.FlipHorizontallyProperty.PropertyName)
-            {
-            }
+            // Handle live property changes such as rotation or flipping if updated dynamically
         }
 
         private void NewElement_OpenRequested(object sender, RequestOpenArgs e)
         {
             var cameraView = (UvcCameraView)sender;
-            MyUvcCameraHelper.Setup(cameraView, new UvcCameraSetupOptions
+            UvcCameraHelper.Setup(cameraView, new UvcCameraSetupOptions
             {
                 PreviewHeight = e.PreviewHeight,
                 PreviewWidth = e.PreviewWidth,
@@ -100,29 +101,29 @@ namespace CameraUVC.Droid.Renders
                 FlipVertically = cameraView.FlipVertically,
                 FlipHorizontally = cameraView.FlipHorizontally
             });
-            MyUvcCameraHelper.StartPreview(cameraView);
+            UvcCameraHelper.StartPreview(cameraView);
         }
 
-        private void NewElement_CloseRequested(object sender, System.EventArgs e)
+        private void NewElement_CloseRequested(object sender, EventArgs e)
         {
-            MyUvcCameraHelper.StopPreview();
+            UvcCameraHelper.StopPreview();
         }
 
         private void NewElement_StartRecordingRequested(object sender, RequestStartRecordingArgs e)
         {
-            MyUvcCameraHelper.StartRecording(e.VideoPath);
+            UvcCameraHelper.StartRecording(e.VideoPath);
         }
 
-        private void NewElement_StopRecordingRequested(object sender, System.EventArgs e)
+        private void NewElement_StopRecordingRequested(object sender, EventArgs e)
         {
-            MyUvcCameraHelper.StopRecording();
+            UvcCameraHelper.StopRecording();
         }
 
         private void NewElement_TakeSnapshotRequested(object sender, RequestTakeSnapshotArgs e)
         {
-            MyUvcCameraHelper.CapturePicture(e.ImagePath, (file) =>
+            UvcCameraHelper.CapturePicture(e.ImagePath, (file) =>
             {
-                Console.WriteLine("TakeSnapshot to:" + file);
+                Console.WriteLine($"[UvcCameraRenderer] Snapshot saved to: {file}");
             });
         }
     }

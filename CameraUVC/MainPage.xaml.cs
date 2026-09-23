@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CameraUVC.Interfaces;
+using CameraUVC.Models;
 using Xamarin.Forms;
 
 namespace CameraUVC
